@@ -18,6 +18,23 @@ M.setup = function(opts)
   cmd("CompilerRedo", function()
     local current_filetype = vim.bo.filetype
 
+    if _G.compiler_redo_nix then
+      local option = _G.compiler_redo_nix_selection
+
+      local overseer = require("overseer")
+      local final_message = "--task finished"
+      local task = overseer.new_task {
+        name = "- Make interpreter",
+        strategy = { "orchestrator",
+        tasks = {{ name = "- Nix run → nix run " .. option ,
+        cmd = "nix run "    .. option ..                                   -- run
+        " && echo nix run " .. option ..                                  -- echo
+        " && echo \"" .. final_message .. "\"",
+        components = { "default_extended" }
+      },},},}
+      task:start()
+      return
+    end
     -- If the user didn't select an option yet, send a notification.
     if _G.compiler_redo_selection == nil and _G.compiler_redo_bau_selection == nil then
       vim.notify("Open the compiler and select an option before doing redo.",
